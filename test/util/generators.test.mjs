@@ -143,22 +143,22 @@ conditional({ webcrypto: 0 })('with modulusLength', testKeyPair, 'RSA1_5', {
   modulusLength: 4096,
 })
 for (const crv of ['X25519', 'X448']) {
-  conditional({ webcrypto: 0, electron: crv === 'X25519' })(`crv: ${crv}`, testKeyPair, 'ECDH-ES', {
+  conditional({ electron: crv === 'X25519' })(`crv: ${crv}`, testKeyPair, 'ECDH-ES', {
     crv,
   })
-  conditional({ webcrypto: 0, electron: crv === 'X25519' })(
+  conditional({ electron: crv === 'X25519' })(
     `crv: ${crv}`,
     testKeyPair,
     'ECDH-ES+A128KW',
     { crv },
   )
-  conditional({ webcrypto: 0, electron: crv === 'X25519' })(
+  conditional({ electron: crv === 'X25519' })(
     `crv: ${crv}`,
     testKeyPair,
     'ECDH-ES+A192KW',
     { crv },
   )
-  conditional({ webcrypto: 0, electron: crv === 'X25519' })(
+  conditional({ electron: crv === 'X25519' })(
     `crv: ${crv}`,
     testKeyPair,
     'ECDH-ES+A256KW',

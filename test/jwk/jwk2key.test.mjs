@@ -173,10 +173,17 @@ const rsa = {
   qi: 'htPHLViOVG6QrldfuHn9evfdlD-UEuViOWNx8aKR3IBv0qegpJ78vYB4hdAcJZtBslKI97En5rzOAN3Y6Y8MbI4oN77WeiePJl2cMrS64evmlERvjJ6ZTs8jK0iV5q_gIZ9Qg9drmolUgb_CccQOBFbqSL6YkXwCBxlkCrzTlhc',
   kty: 'RSA',
 }
+const x25519 = {
+  crv: 'X25519',
+  x: 'axR8Q7PEd74nY9nWaAoAYpMe3gp5sWbau6V6X1inPw4',
+  d: 'aCvvb3jEBnxJJBjCIN2a9ZDTL-HG6LVgBbij4m8-d3Y',
+  kty: 'OKP',
+}
 test(testKeyImportExport, { ...rsa, alg: 'RS256' })
 test(testKeyImportExport, { ...rsa, alg: 'PS256' })
 test(testKeyImportExport, { ...rsa, alg: 'RSA-OAEP' })
 test(testKeyImportExport, { ...rsa, alg: 'RSA-OAEP-256' })
+test(testKeyImportExport, { ...x25519, alg: 'ECDH-ES' })
 
 test('Uin8tArray can be transformed to a JWK', async (t) => {
   t.deepEqual(
@@ -229,17 +236,10 @@ const ed448 = {
   kty: 'OKP',
 }
 conditional({ webcrypto: 1, electron: 0 })(testKeyImportExport, { ...ed448, alg: 'EdDSA' })
-const x25519 = {
-  crv: 'X25519',
-  x: 'axR8Q7PEd74nY9nWaAoAYpMe3gp5sWbau6V6X1inPw4',
-  d: 'aCvvb3jEBnxJJBjCIN2a9ZDTL-HG6LVgBbij4m8-d3Y',
-  kty: 'OKP',
-}
-conditional({ webcrypto: 0 })(testKeyImportExport, { ...x25519, alg: 'ECDH-ES' })
 const x448 = {
   crv: 'X448',
   x: 'z8s0Ej7D4pgIDu233UHoDW48EbiEm5eFv8_LuFwRr0xVREHhCtdxH75x6J8egZbjDGweOSbeHbY',
   d: 'xBrCwLlrHa1ov2cbmD4eMw4t6DoN_MWsBT_mxcA_QWsCS_9sKMRyFpphNN9_2iKrGPTC9pWCS5w',
   kty: 'OKP',
 }
-conditional({ webcrypto: 0, electron: 0 })(testKeyImportExport, { ...x448, alg: 'ECDH-ES' })
+conditional({ electron: 0 })(testKeyImportExport, { ...x448, alg: 'ECDH-ES' })

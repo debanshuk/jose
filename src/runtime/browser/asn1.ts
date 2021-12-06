@@ -1,4 +1,3 @@
-import { isCloudflareWorkers, isNodeJs } from './env.js'
 import crypto, { isCryptoKey } from './webcrypto.js'
 import type { PEMExportFunction, PEMImportFunction } from '../interfaces.d'
 import invalidKeyInput from '../../lib/invalid_key_input.js'
@@ -60,9 +59,13 @@ const getNamedCurve = (keyData: Uint8Array): string => {
       return 'P-384'
     case findOid(keyData, [0x2b, 0x81, 0x04, 0x00, 0x23]):
       return 'P-521'
-    case (isCloudflareWorkers() || isNodeJs()) && findOid(keyData, [0x2b, 0x65, 0x70]):
+    case findOid(keyData, [0x2b, 0x65, 0x6e]):
+      return 'X25519'
+    case findOid(keyData, [0x2b, 0x65, 0x6f]):
+      return 'X448'
+    case findOid(keyData, [0x2b, 0x65, 0x70]):
       return 'Ed25519'
-    case isNodeJs() && findOid(keyData, [0x2b, 0x65, 0x71]):
+    case findOid(keyData, [0x2b, 0x65, 0x71]):
       return 'Ed448'
     default:
       throw new JOSENotSupported('Invalid or unsupported EC Key Curve or OKP Key Sub Type')
@@ -126,12 +129,12 @@ const genericImport = async (
     case 'ECDH-ES+A128KW':
     case 'ECDH-ES+A192KW':
     case 'ECDH-ES+A256KW':
-      algorithm = { name: 'ECDH', namedCurve: getNamedCurve(keyData) }
+      const namedCurve = getNamedCurve(keyData)
+      algorithm = namedCurve.startsWith('P-') ? { name: 'ECDH', namedCurve } : { name: namedCurve }
       keyUsages = isPublic ? [] : ['deriveBits']
       break
-    case (isCloudflareWorkers() || isNodeJs()) && 'EdDSA':
-      const namedCurve = getNamedCurve(keyData).toUpperCase()
-      algorithm = { name: `NODE-${namedCurve}`, namedCurve: `NODE-${namedCurve}` }
+    case 'EdDSA':
+      algorithm = { name: getNamedCurve(keyData) }
       keyUsages = isPublic ? ['verify'] : ['sign']
       break
     default:

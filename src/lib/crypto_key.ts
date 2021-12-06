@@ -1,5 +1,3 @@
-import { isCloudflareWorkers, isNodeJs } from '../runtime/env.js'
-
 function unusable(name: string | number, prop = 'algorithm.name') {
   return new TypeError(`CryptoKey does not support this operation, its ${prop} must be ${name}`)
 }
@@ -71,13 +69,10 @@ export function checkSigCryptoKey(key: CryptoKey, alg: string, ...usages: KeyUsa
       if (actual !== expected) throw unusable(`SHA-${expected}`, 'algorithm.hash')
       break
     }
-    case isNodeJs() && 'EdDSA': {
-      if (key.algorithm.name !== 'NODE-ED25519' && key.algorithm.name !== 'NODE-ED448')
-        throw unusable('NODE-ED25519 or NODE-ED448')
-      break
-    }
-    case isCloudflareWorkers() && 'EdDSA': {
-      if (!isAlgorithm(key.algorithm, 'NODE-ED25519')) throw unusable('NODE-ED25519')
+    case 'EdDSA': {
+      if (key.algorithm.name !== 'Ed25519' && key.algorithm.name !== 'Ed448') {
+        throw unusable('Ed25519 or Ed448')
+      }
       break
     }
     case 'ES256':
@@ -116,9 +111,17 @@ export function checkEncCryptoKey(key: CryptoKey, alg: string, ...usages: KeyUsa
       if (actual !== expected) throw unusable(expected, 'algorithm.length')
       break
     }
-    case 'ECDH':
-      if (!isAlgorithm(key.algorithm, 'ECDH')) throw unusable('ECDH')
+    case 'ECDH': {
+      switch (key.algorithm.name) {
+        case 'ECDH':
+        case 'X25519':
+        case 'X448':
+          break
+        default:
+          throw unusable('ECDH, X25519, or X448')
+      }
       break
+    }
     case 'PBES2-HS256+A128KW':
     case 'PBES2-HS384+A192KW':
     case 'PBES2-HS512+A256KW':
