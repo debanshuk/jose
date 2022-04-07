@@ -11,17 +11,19 @@ import type {
   JWK,
 } from '../types.d'
 import generateCek, { bitLength as cekLength } from '../lib/cek.js'
-import { JOSENotSupported } from '../util/errors.js'
+import {JOSEAlgNotAllowed, JOSENotSupported} from '../util/errors.js'
 import { exportJWK } from '../key/export.js'
 import checkKeyType from './check_key_type.js'
 import { wrap as aesGcmKw } from './aesgcmkw.js'
+import {KmsAccessor} from "../key/kms";
 
 async function encryptKeyManagement(
   alg: string,
   enc: string,
-  key: KeyLike | Uint8Array,
+  key: KeyLike | Uint8Array | string,
   providedCek?: Uint8Array,
   providedParameters: JWEKeyManagementHeaderParameters = {},
+  kmsAccessor?: KmsAccessor
 ): Promise<{
   cek: KeyLike | Uint8Array
   encryptedKey?: Uint8Array
@@ -30,6 +32,23 @@ async function encryptKeyManagement(
   let encryptedKey: Uint8Array | undefined
   let parameters: (JWEHeaderParameters & { epk?: JWK }) | undefined
   let cek: KeyLike | Uint8Array
+
+  if (typeof key === 'string') {
+    switch (alg) {
+      case 'SYMMETRIC_DEFAULT': {
+        if (!kmsAccessor) {
+          throw new JOSEAlgNotAllowed(`KMS Accessor is required with alg: ${alg}`);
+        }
+        ({cek, encryptedKey} = await kmsAccessor.generateDataKey(key, enc))
+        break
+      }
+      default: {
+        throw new JOSENotSupported('Invalid or unsupported "alg" (JWE Algorithm) header value')
+      }
+    }
+
+    return { cek, encryptedKey, parameters }
+  }
 
   checkKeyType(alg, key, 'encrypt')
 

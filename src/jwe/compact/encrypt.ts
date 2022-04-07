@@ -5,6 +5,7 @@ import type {
   CompactJWEHeaderParameters,
   EncryptOptions,
 } from '../../types.d'
+import {KmsAccessor} from "../../key/kms";
 
 /**
  * The CompactEncrypt class is a utility for creating Compact JWE strings.
@@ -83,13 +84,18 @@ export class CompactEncrypt {
     return this
   }
 
+  setKmsAccessor(kmsAccessor: KmsAccessor) {
+    this._flattened.setKmsAccessor(kmsAccessor);
+    return this;
+  }
+
   /**
    * Encrypts and resolves the value of the Compact JWE string.
    *
    * @param key Public Key or Secret to encrypt the JWE with.
    * @param options JWE Encryption options.
    */
-  async encrypt(key: KeyLike | Uint8Array, options?: EncryptOptions): Promise<string> {
+  async encrypt(key: KeyLike | Uint8Array | string, options?: EncryptOptions): Promise<string> {
     const jwe = await this._flattened.encrypt(key, options)
 
     return [jwe.protected, jwe.encrypted_key, jwe.iv, jwe.ciphertext, jwe.tag].join('.')

@@ -15,6 +15,7 @@ import { JOSENotSupported, JWEInvalid } from '../../util/errors.js'
 import isDisjoint from '../../lib/is_disjoint.js'
 import { encoder, decoder, concat } from '../../lib/buffer_utils.js'
 import validateCrit from '../../lib/validate_crit.js'
+import {KmsAccessor} from "../../key/kms";
 
 /**
  * @private
@@ -55,6 +56,8 @@ export class FlattenedEncrypt {
   private _iv!: Uint8Array
 
   private _keyManagementParameters!: JWEKeyManagementHeaderParameters
+
+  protected _kmsAccessor?: KmsAccessor
 
   /**
    * @param plaintext Binary representation of the plaintext to encrypt.
@@ -166,13 +169,18 @@ export class FlattenedEncrypt {
     return this
   }
 
+  setKmsAccessor(kmsAccessor: KmsAccessor) {
+    this._kmsAccessor = kmsAccessor;
+    return this;
+  }
+
   /**
    * Encrypts and resolves the value of the Flattened JWE object.
    *
    * @param key Public Key or Secret to encrypt the JWE with.
    * @param options JWE Encryption options.
    */
-  async encrypt(key: KeyLike | Uint8Array, options?: EncryptOptions) {
+  async encrypt(key: KeyLike | Uint8Array | string, options?: EncryptOptions) {
     if (!this._protectedHeader && !this._unprotectedHeader && !this._sharedUnprotectedHeader) {
       throw new JWEInvalid(
         'either setProtectedHeader, setUnprotectedHeader, or sharedUnprotectedHeader must be called before #encrypt()',
@@ -240,6 +248,7 @@ export class FlattenedEncrypt {
         key,
         this._cek,
         this._keyManagementParameters,
+        this._kmsAccessor
       ))
 
       if (parameters) {

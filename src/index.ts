@@ -59,6 +59,8 @@ export type { GenerateSecretOptions } from './key/generate_secret.js'
 
 export * as base64url from './util/base64url.js'
 
+export {KmsAccessor} from './key/kms';
+
 export type {
   KeyLike,
   JWK,
